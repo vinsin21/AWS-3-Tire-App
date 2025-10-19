@@ -10,18 +10,39 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // --- Middleware ---
-// Enable CORS for our React frontend
-app.use(cors({ origin: 'http://visitor-log-frontend-app-12331.s3-website.ap-south-1.amazonaws.com' })); // For learning, '*' is fine. For production, lock this down.
-// Enable parsing of JSON request bodies
+app.use(cors({ origin: 'http://visitor-log-frontend-app-12331.s3-website.ap-south-1.amazonaws.com' }));
 app.use(express.json());
 
+// --- Database Connection with SSL ---
+const pool = new Pool({
+    ssl: {
+        rejectUnauthorized: false  // For AWS RDS, this is safe
+    }
+});
 
-// --- Database Connection ---
-// The 'pg' library will automatically use environment variables for connection details.
-// See: https://node-postgres.com/features/connecting#environment-variables
-// Required ENV Vars: PGHOST, PGUSER, PGDATABASE, PGPASSWORD, PGPORT
-const pool = new Pool();
+// --- Database Initialization ---
+const initializeDatabase = async () => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS visitors (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        console.log('✅ Database initialized successfully');
 
+        // Test connection
+        const result = await pool.query('SELECT NOW()');
+        console.log('✅ Database connected at:', result.rows[0].now);
+    } catch (error) {
+        console.error('❌ Database initialization error:', error);
+        process.exit(1);
+    }
+};
+
+// Initialize database
+initializeDatabase();
 
 // --- API Endpoints ---
 
@@ -37,7 +58,7 @@ app.get('/visitors', async (req, res) => {
         res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching visitors:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 });
 
@@ -52,15 +73,13 @@ app.post('/visitors', async (req, res) => {
         res.status(201).json({ message: 'Visitor added successfully' });
     } catch (error) {
         console.error('Error adding visitor:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 });
 
 // GET /check-ip - Makes an outbound call to test the NAT Gateway
 app.get('/check-ip', async (req, res) => {
     try {
-        // This external API returns the public IP of the machine making the request.
-        // In our AWS setup, this will be the IP of our NAT Gateway.
         const response = await axios.get('https://api.ipify.org?format=json');
         res.status(200).json({
             message: "Outbound call successful! This is the public IP of the server.",
@@ -71,7 +90,6 @@ app.get('/check-ip', async (req, res) => {
         res.status(500).json({ error: 'Failed to make outbound call' });
     }
 });
-
 
 // --- Start Server ---
 app.listen(port, () => {
