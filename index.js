@@ -11,7 +11,7 @@ const port = process.env.PORT || 8080;
 
 // --- Middleware ---
 // Enable CORS for our React frontend
-app.use(cors({ origin: 'http://visitor-log-react-frontend-bucket.s3-website.ap-south-1.amazonaws.com' })); // For learning, '*' is fine. For production, lock this down.
+app.use(cors({ origin: 'http://visitor-log-frontend-app-12331.s3-website.ap-south-1.amazonaws.com' })); // For learning, '*' is fine. For production, lock this down.
 // Enable parsing of JSON request bodies
 app.use(express.json());
 
