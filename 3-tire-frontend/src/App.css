@@ -1,0 +1,60 @@
+body {
+  background-color: #282c34;
+  color: white;
+  font-family: sans-serif;
+}
+
+.App {
+  text-align: center;
+}
+
+.App-header {
+  padding: 20px;
+}
+
+.visitor-form input {
+  padding: 10px;
+  margin-right: 10px;
+  border-radius: 5px;
+  border: none;
+}
+
+.visitor-form button {
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #61dafb;
+  font-weight: bold;
+}
+
+.ip-check {
+  margin-top: 20px;
+}
+
+.ip-check button {
+  background-color: #f0ad4e;
+}
+
+.visitor-list {
+  margin-top: 20px;
+  text-align: left;
+  display: inline-block;
+}
+
+.visitor-list ul {
+  padding-left: 0;
+  list-style: none;
+}
+
+.visitor-list li {
+  background-color: #3b4049;
+  margin-bottom: 5px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.error {
+  color: #d9534f;
+  font-weight: bold;
+}
