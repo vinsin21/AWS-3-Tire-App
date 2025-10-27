@@ -71,6 +71,7 @@ PGDATABASE=$(aws ssm get-parameter --name "/myapp/PGDATABASE" --region $REGION -
 PGPASSWORD=$(aws ssm get-parameter --name "/myapp/PGPASSWORD" --region $REGION --with-decryption --query "Parameter.Value" --output text)
 PGPORT=$(aws ssm get-parameter --name "/myapp/PGPORT" --region $REGION --with-decryption --query "Parameter.Value" --output text)
 
+
 # Create .env file as ubuntu user
 echo "=== Creating .env file ==="
 cat <<EOT > /home/ubuntu/AWS-3-Tire-App/.env
@@ -79,6 +80,7 @@ PGUSER=$PGUSER
 PGDATABASE=$PGDATABASE
 PGPASSWORD=$PGPASSWORD
 PGPORT=$PGPORT
+CORS_ORIGIN=<frontend-app-url>
 EOT
 
 # Set correct ownership

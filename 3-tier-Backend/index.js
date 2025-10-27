@@ -10,7 +10,7 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // --- Middleware ---
-app.use(cors({ origin: 'http://visitor-log-frontend-app-12331.s3-website.ap-south-1.amazonaws.com' }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
 app.use(express.json());
 
 // --- Database Connection with SSL ---
