@@ -2,36 +2,46 @@
 set -e
 set -x
 
-# Log everything
+# Log everything to a file for debugging
 exec > >(tee -a /var/log/user-data.log)
 exec 2>&1
 
 echo "=== Starting User Data Script ==="
 date
 
-# Update and install Docker
-echo "=== Installing Docker ==="
+# Update system packages
 apt-get update -y
-# Install Docker and its dependencies
-apt-get install -y docker.io apt-transport-https ca-certificates curl software-properties-common
 
+# Install Docker and curl (needed to get region)
+apt-get install -y docker.io curl
 systemctl start docker
 systemctl enable docker
 
-# Make sure 'ubuntu' user can run docker commands (optional, but good practice)
+# Allow the 'ubuntu' user to run Docker commands (good practice)
 usermod -aG docker ubuntu
 
-# Pull your application image from Docker Hub (or AWS ECR)
-# Replace with your actual image name and tag
-echo "=== Pulling container image ==="
-docker pull your-username/your-app-image:latest
+#  Get the instance's region
+echo "=== Fetching EC2 Instance Region ==="
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/placement/region)
+
+
+DOCKER_IMAGE="winsin/visitor-log-backend"
+
+# Pull the latest version of your application image
+docker pull $DOCKER_IMAGE
 
 # Run the container
-# No -e flags for secrets!
-echo "=== Starting application container ==="
+# Notice there are NO -e flags for secrets!
+# The app will get them from SSM by itself.
+# --- MODIFIED: Added -e AWS_REGION=$REGION ---
+echo "=== Starting application container in region $REGION ==="
 docker run -d --restart=always \
-  -p 80:8080 \
+  -p 8080:8080 \
+  -e AWS_REGION=$REGION \
   --name "backend-app" \
-  your-username/your-app-image:latest
+  $DOCKER_IMAGE
   
-echo "=== Container started! ==="
+echo "=== Deployment complete! Container started. ==="
+date
+
